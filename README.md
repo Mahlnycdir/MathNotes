@@ -6,7 +6,7 @@ Handschriftliches Notizbuch fürs iPhone: mit dem Daumen in der Schreiblupe schr
 
 1. Auf GitHub ein **öffentliches** Repository anlegen, zum Beispiel `kladde`.
 2. Auf **„uploading an existing file“** klicken und den **Inhalt** dieses Ordners ins Browserfenster ziehen, also `index.html`, `sw.js`, `manifest.webmanifest`, `README.md` und die Ordner `fonts`, `icons` und `vendor`. Dann **Commit changes**.
-3. **Settings → Pages**: unter „Branch“ `main` und `/ (root)` wählen, **Save**. Nach 1–2 Minuten ist die App unter `https://DEINNAME.github.io/kladde/` erreichbar.
+3. **Settings → Pages**: unter „Branch“ `main` und `/ (root)` wählen, **Save**. Nach 1–2 Minuten ist die App unter `https://DEINNAME.github.io/MathNotes/` erreichbar.
 4. Diese Adresse auf dem iPhone in **Safari** öffnen, dann **Teilen → Zum Home-Bildschirm**.
 5. Kladde ab jetzt nur noch über das Symbol öffnen. Die App startet im Vollbild und funktioniert nach dem ersten Start auch ohne Netz.
 
