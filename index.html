@@ -1,0 +1,1574 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Kladde</title>
+<meta name="description" content="Handschriftliches Notizbuch für Mathe und Physik – mit dem Daumen.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Kladde">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#F2F4F6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1B1E23" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<style>
+@font-face { font-family: "IBM Plex Sans Condensed"; font-weight: 400; font-display: swap; src: url("fonts/ibm-plex-sans-condensed-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Sans Condensed"; font-weight: 500; font-display: swap; src: url("fonts/ibm-plex-sans-condensed-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Sans Condensed"; font-weight: 600; font-display: swap; src: url("fonts/ibm-plex-sans-condensed-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-weight: 400; font-display: swap; src: url("fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-weight: 500; font-display: swap; src: url("fonts/ibm-plex-mono-latin-500-normal.woff2") format("woff2"); }
+/* Layout: Seite oben (frei zoombar), Werkzeuge in Daumenhöhe, Schreiblupe ganz unten. */
+:root {
+  --desk: #DCE1E7;
+  --paper: #FBFCFA;
+  --chrome: #F2F4F6;
+  --chrome-2: #E6EAEE;
+  --line: rgba(28, 46, 74, 0.13);
+  --fg: #15181D;
+  --fg-2: #5A6270;
+  --accent: #1F4FD1;
+  --on-accent: #FFFFFF;
+  --sel: rgba(31, 79, 209, 0.12);
+  --rule: rgba(46, 96, 176, 0.21);
+  --dot: rgba(46, 96, 176, 0.42);
+  --lupe: #E8740C;
+  --lupe-ink: #A84E00;
+  --lupe-soft: rgba(232, 116, 12, 0.10);
+  --danger: #C42B2B;
+  --ink-ink: #15171B;
+  --ink-blue: #1F4FD1;
+  --ink-red: #D02B2B;
+  --ink-green: #178A4C;
+  --shadow: 0 14px 36px rgba(20, 30, 50, 0.20);
+  --font-ui: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, -apple-system, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --desk: #08090B; --paper: #15181C; --chrome: #1B1E23; --chrome-2: #262A31;
+    --line: rgba(200, 215, 235, 0.11); --fg: #E8EBF0; --fg-2: #98A0AD;
+    --accent: #7FA8FF; --on-accent: #0B1430; --sel: rgba(127, 168, 255, 0.16);
+    --rule: rgba(130, 160, 215, 0.17); --dot: rgba(150, 180, 230, 0.36);
+    --lupe: #FF9A3D; --lupe-ink: #FFB46E; --lupe-soft: rgba(255, 154, 61, 0.12); --danger: #FF6B63;
+    --ink-ink: #ECEEF2; --ink-blue: #7FA8FF; --ink-red: #FF7A73; --ink-green: #63D893;
+    --shadow: 0 14px 36px rgba(0, 0, 0, 0.55);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --desk: #08090B; --paper: #15181C; --chrome: #1B1E23; --chrome-2: #262A31;
+  --line: rgba(200, 215, 235, 0.11); --fg: #E8EBF0; --fg-2: #98A0AD;
+  --accent: #7FA8FF; --on-accent: #0B1430; --sel: rgba(127, 168, 255, 0.16);
+  --rule: rgba(130, 160, 215, 0.17); --dot: rgba(150, 180, 230, 0.36);
+  --lupe: #FF9A3D; --lupe-ink: #FFB46E; --lupe-soft: rgba(255, 154, 61, 0.12); --danger: #FF6B63;
+  --ink-ink: #ECEEF2; --ink-blue: #7FA8FF; --ink-red: #FF7A73; --ink-green: #63D893;
+  --shadow: 0 14px 36px rgba(0, 0, 0, 0.55);
+  color-scheme: dark;
+}
+
+html {
+  box-sizing: border-box; height: 100%; overscroll-behavior: none; background: var(--chrome);
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+  -webkit-text-size-adjust: 100%; text-size-adjust: 100%;
+}
+*, *::before, *::after { box-sizing: inherit; }
+[hidden] { display: none !important; }
+body {
+  height: 100%; margin: 0; overflow: hidden;
+  background: var(--chrome); color: var(--fg);
+  font-family: var(--font-ui); font-size: 15px;
+  -webkit-user-select: none; user-select: none;
+  -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
+}
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; touch-action: manipulation; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+svg { display: block; }
+.ico { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+#app { position: relative; height: 100%; display: flex; flex-direction: column; }
+
+/* Leisten */
+.bar {
+  flex: 0 0 auto; display: flex; align-items: center; gap: 2px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: var(--chrome);
+}
+.top { height: 48px; gap: 6px; border-bottom: 1px solid var(--line); }
+.tools { height: 50px; border-top: 1px solid var(--line); }
+.lupebar { height: 42px; border-top: 1px solid var(--line); }
+
+.tb { flex: 0 0 auto; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 10px; color: var(--fg); }
+.tb.on { background: var(--sel); color: var(--accent); }
+.tb:disabled { opacity: 0.3; cursor: default; }
+.libbtn { flex: 0 0 auto; display: flex; align-items: center; gap: 5px; height: 38px; padding: 0 8px 0 4px; margin-left: -4px; border-radius: 10px; color: var(--accent); font-weight: 500; }
+.title { flex: 1 1 auto; min-width: 0; text-align: left; font-weight: 600; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 8px 2px; }
+.status { flex: 0 0 auto; font-family: var(--font-data); font-size: 10.5px; letter-spacing: 0.02em; color: var(--fg-2); white-space: nowrap; }
+.grow { flex: 1 1 auto; }
+
+.swatches { display: flex; }
+.sw { width: 30px; height: 44px; display: grid; place-items: center; }
+.sw i { width: 18px; height: 18px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 2px var(--chrome); transition: box-shadow 0.12s; }
+.sw.on i { box-shadow: 0 0 0 2px var(--chrome), 0 0 0 4px var(--c); }
+
+.lb { flex: 0 0 auto; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 9px; color: var(--lupe-ink); }
+.lb .ico { width: 20px; height: 20px; stroke-width: 2; }
+.lb:active, .tb:active { background: var(--chrome-2); }
+.readout { flex: 1 1 auto; min-width: 0; text-align: center; font-family: var(--font-data); font-size: 11px; color: var(--fg-2); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Zeichenflächen */
+.stage { position: relative; flex: 1 1 auto; min-height: 120px; overflow: hidden; background: var(--desk); touch-action: none; }
+.pad { position: relative; flex: 0 0 auto; height: min(340px, 40%); min-height: 180px; overflow: hidden; touch-action: none; background: var(--paper); border-top: 2px solid var(--lupe); }
+.stage canvas, .pad canvas { position: absolute; left: 0; top: 0; touch-action: none; }
+.hint {
+  position: absolute; left: 0; top: 50%; width: 75%; transform: translateY(-50%); margin: 0;
+  padding: 0 24px; text-align: center; pointer-events: none; z-index: 2;
+  color: var(--fg-2); font-size: 15px; line-height: 1.4; text-wrap: balance;
+}
+.hint b { display: block; font-weight: 600; color: var(--lupe-ink); margin-bottom: 2px; }
+
+/* Popover */
+.scrim { position: absolute; inset: 0; z-index: 20; }
+.pop {
+  position: absolute; z-index: 21; background: var(--chrome); color: var(--fg);
+  border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow);
+}
+.menu {
+  top: 52px; right: max(10px, env(safe-area-inset-right, 0px));
+  width: min(330px, calc(100% - 20px)); max-height: calc(100% - 64px); overflow-y: auto;
+  padding: 14px; display: flex; flex-direction: column; gap: 14px;
+}
+.sec { display: flex; flex-direction: column; gap: 7px; }
+.label { font-family: var(--font-data); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-2); }
+.seg { display: grid; grid-template-columns: repeat(var(--n, 4), 1fr); gap: 5px; }
+.seg button { min-height: 44px; padding: 6px 2px; border-radius: 10px; background: var(--chrome-2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; font-size: 13px; }
+.seg button.on { background: var(--sel); color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
+.pv { width: 30px; height: 20px; border-radius: 3px; background-color: var(--paper); border: 1px solid var(--line); }
+.pv.grid { background-image: linear-gradient(var(--rule) 1px, transparent 1px), linear-gradient(90deg, var(--rule) 1px, transparent 1px); background-size: 6px 6px; }
+.pv.lines { background-image: linear-gradient(var(--rule) 1px, transparent 1px); background-size: 100% 7px; }
+.pv.dots { background-image: radial-gradient(circle, var(--dot) 1px, transparent 1.4px); background-size: 6px 6px; }
+.switch { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 40px; font-size: 15px; cursor: pointer; }
+.switch input { appearance: none; -webkit-appearance: none; flex: 0 0 auto; width: 46px; height: 28px; border-radius: 14px; background: var(--chrome-2); position: relative; margin: 0; cursor: pointer; box-shadow: inset 0 0 0 1px var(--line); transition: background 0.15s; }
+.switch input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--paper); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25); transition: transform 0.15s; }
+.switch input:checked { background: var(--lupe); }
+.switch input:checked::after { transform: translateX(18px); }
+.field { width: 100%; height: 42px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--paper); color: var(--fg); font: inherit; font-size: 16px; -webkit-user-select: text; user-select: text; }
+.actions { display: flex; flex-direction: column; gap: 2px; border-top: 1px solid var(--line); padding-top: 8px; }
+.act { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 8px; border-radius: 10px; text-align: left; font-size: 15px; }
+.act:active { background: var(--chrome-2); }
+.act .ico { width: 20px; height: 20px; color: var(--fg-2); }
+.act.danger, .act.danger .ico { color: var(--danger); }
+.act.armed { background: var(--danger); color: var(--chrome); }
+.act.armed .ico { color: var(--chrome); }
+
+.widthpop { bottom: 54px; left: max(10px, env(safe-area-inset-left, 0px)); padding: 8px; display: flex; gap: 4px; }
+.widthpop button { width: 72px; height: 58px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; font-size: 13px; background: var(--chrome-2); }
+.widthpop button.on { background: var(--sel); color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
+.widthpop i { width: 36px; border-radius: 4px; background: currentColor; }
+
+/* Bibliothek */
+.library { position: absolute; inset: 0; z-index: 30; display: flex; flex-direction: column; background: var(--chrome); }
+.library:not([hidden]) { animation: slide 0.22s ease-out; }
+@keyframes slide { from { transform: translateX(-24px); opacity: 0; } to { transform: none; opacity: 1; } }
+.lib-head {
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 12px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 18px 12px; border-bottom: 1px solid var(--line);
+}
+.lib-head h1 { margin: 0; font-weight: 600; font-size: 34px; line-height: 1; letter-spacing: -0.01em; }
+.lib-head .label { display: block; margin-top: 6px; }
+.lib-list {
+  flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y;
+  list-style: none; margin: 0; display: flex; flex-direction: column; gap: 2px;
+  padding-left: max(8px, env(safe-area-inset-left, 0px)); padding-right: max(8px, env(safe-area-inset-right, 0px));
+  padding-block: 8px 112px;
+}
+.row { position: relative; display: flex; align-items: center; gap: 4px; border-radius: 12px; }
+.row-open { flex: 1 1 auto; min-width: 0; display: grid; grid-template-columns: 78px 1fr; align-items: center; gap: 12px; padding: 8px; border-radius: 12px; text-align: left; }
+.row-open:active { background: var(--chrome-2); }
+.thumb { position: relative; width: 78px; height: 56px; border-radius: 6px; overflow: hidden; background-color: var(--paper); border: 1px solid var(--line); background-image: linear-gradient(var(--rule) 1px, transparent 1px), linear-gradient(90deg, var(--rule) 1px, transparent 1px); background-size: 5px 5px; }
+.thumb i { position: absolute; inset: 3px; background: var(--ink-ink); -webkit-mask: var(--m) left top / contain no-repeat; mask: var(--m) left top / contain no-repeat; }
+.row-text { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.row-title { font-weight: 600; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-meta { font-family: var(--font-data); font-size: 11px; color: var(--fg-2); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-meta em { font-style: normal; color: var(--lupe-ink); }
+.row-del { color: var(--fg-2); }
+.row-confirm { position: absolute; inset: 0; display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 0 8px; border-radius: 12px; background: var(--chrome-2); }
+.row-confirm span { flex: 1 1 auto; padding-left: 12px; font-size: 15px; }
+.pill { flex: 0 0 auto; white-space: nowrap; height: 36px; padding: 0 14px; border-radius: 18px; font-weight: 600; font-size: 14px; background: var(--chrome); }
+.pill.danger { background: var(--danger); color: var(--chrome); }
+.lib-empty { padding: 40px 24px; text-align: center; color: var(--fg-2); line-height: 1.5; text-wrap: balance; }
+.lib-foot { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 16px 20px; background: linear-gradient(transparent, var(--chrome) 40%); pointer-events: none; }
+.lib-foot > * { pointer-events: auto; }
+.sync { font-family: var(--font-data); font-size: 10.5px; color: var(--fg-2); line-height: 1.4; max-width: 18em; }
+.fab { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; height: 54px; padding: 0 22px 0 16px; border-radius: 27px; background: var(--accent); color: var(--on-accent); font-weight: 600; font-size: 16px; box-shadow: var(--shadow); }
+.fab .ico { stroke-width: 2.2; }
+
+.sharebar { position: absolute; z-index: 41; top: 58px; left: 50%; transform: translateX(-50%); width: min(360px, calc(100% - 24px)); display: flex; align-items: center; gap: 10px; padding: 10px 10px 10px 14px; border-radius: 14px; background: var(--chrome); border: 1px solid var(--line); box-shadow: var(--shadow); }
+.sharebar .name { flex: 1 1 auto; min-width: 0; font-family: var(--font-data); font-size: 12px; color: var(--fg-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sharebar .pill.primary { background: var(--accent); color: var(--on-accent); }
+.lib-tools { display: flex; align-items: center; gap: 6px; }
+.lib-tools .pill { background: var(--chrome-2); }
+.toast { position: absolute; z-index: 40; top: 58px; left: 50%; transform: translateX(-50%); max-width: calc(100% - 32px); padding: 9px 14px; border-radius: 10px; background: var(--fg); color: var(--chrome); font-size: 14px; box-shadow: var(--shadow); text-align: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  .library:not([hidden]) { animation: none; }
+  .sw i, .switch input, .switch input::after { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20l1.2-4.6L15.6 5a2 2 0 0 1 2.8 0l.6.6a2 2 0 0 1 0 2.8L8.6 18.8z"/><path d="M13.5 7l3.5 3.5"/></symbol>
+    <symbol id="i-eraser" viewBox="0 0 24 24"><path d="M7.5 19.5l-3.7-3.7a1.6 1.6 0 0 1 0-2.3L13 4.3a1.6 1.6 0 0 1 2.3 0l4.4 4.4a1.6 1.6 0 0 1 0 2.3l-8.6 8.5z"/><path d="M8.6 8.7l6.7 6.7"/><path d="M11 19.5h9"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
+    <symbol id="i-redo" viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></symbol>
+    <symbol id="i-lupe" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></symbol>
+    <symbol id="i-zout" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5M8 10.5h5"/></symbol>
+    <symbol id="i-zin" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5M8 10.5h5M10.5 8v5"/></symbol>
+    <symbol id="i-left" viewBox="0 0 24 24"><path d="M14.5 6l-6 6 6 6"/></symbol>
+    <symbol id="i-right" viewBox="0 0 24 24"><path d="M9.5 6l6 6-6 6"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="M6 14.5l6-6 6 6"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="M6 9.5l6 6 6-6"/></symbol>
+    <symbol id="i-return" viewBox="0 0 24 24"><path d="M19 5v6a3 3 0 0 1-3 3H6"/><path d="M10 10l-4 4 4 4"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="18.5" cy="12" r="1.4"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M9 3.5v17M12.5 8h3.5M12.5 11h3.5"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4.5 7h15"/><path d="M9.5 7V4.5h5V7"/><path d="M6.5 7l1 12.5h9l1-12.5"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6.5 3.5h7.5l4 4v13h-11.5z"/><path d="M14 3.5v4h4"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M3.5 16l5-5 4 4 2.5-2.5 5.5 5.5"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  </defs>
+</svg>
+
+<div id="app">
+  <header class="bar top">
+    <button id="btn-library" class="libbtn" aria-label="Alle Notizen">
+      <svg class="ico"><use href="#i-book"/></svg><span>Notizen</span>
+    </button>
+    <button id="title" class="title" aria-label="Notiz umbenennen">Notiz</button>
+    <span id="status" class="status" aria-live="polite">neu</span>
+    <button id="btn-menu" class="tb" aria-label="Mehr" aria-haspopup="true">
+      <svg class="ico" style="fill:currentColor;stroke:none"><use href="#i-more"/></svg>
+    </button>
+  </header>
+
+  <div id="stage" class="stage"></div>
+
+  <nav class="bar tools" aria-label="Werkzeuge">
+    <button id="t-pen" class="tb on" aria-label="Stift (nochmal tippen: Strichstärke)" aria-pressed="true"><svg class="ico"><use href="#i-pen"/></svg></button>
+    <button id="t-eraser" class="tb" aria-label="Radierer" aria-pressed="false"><svg class="ico"><use href="#i-eraser"/></svg></button>
+    <div class="swatches" id="swatches">
+      <button class="sw" data-color="ink" aria-label="Tinte" style="--c: var(--ink-ink)"><i></i></button>
+      <button class="sw" data-color="blue" aria-label="Blau" style="--c: var(--ink-blue)"><i></i></button>
+      <button class="sw" data-color="red" aria-label="Rot" style="--c: var(--ink-red)"><i></i></button>
+      <button class="sw" data-color="green" aria-label="Grün" style="--c: var(--ink-green)"><i></i></button>
+    </div>
+    <span class="grow"></span>
+    <button id="t-undo" class="tb" aria-label="Rückgängig" disabled><svg class="ico"><use href="#i-undo"/></svg></button>
+    <button id="t-redo" class="tb" aria-label="Wiederholen" disabled><svg class="ico"><use href="#i-redo"/></svg></button>
+    <button id="t-lupe" class="tb on" aria-label="Schreiblupe" aria-pressed="true"><svg class="ico"><use href="#i-lupe"/></svg></button>
+  </nav>
+
+  <div id="lupebar" class="bar lupebar" aria-label="Lupe bewegen">
+    <button class="lb" data-step="left" aria-label="Lupe nach links"><svg class="ico"><use href="#i-left"/></svg></button>
+    <button class="lb" data-step="up" aria-label="Lupe ein Kästchen hoch"><svg class="ico"><use href="#i-up"/></svg></button>
+    <button class="lb" data-step="down" aria-label="Lupe ein Kästchen runter"><svg class="ico"><use href="#i-down"/></svg></button>
+    <button class="lb" data-step="right" aria-label="Lupe nach rechts"><svg class="ico"><use href="#i-right"/></svg></button>
+    <button class="lb" data-step="newline" aria-label="Neue Zeile"><svg class="ico"><use href="#i-return"/></svg></button>
+    <span id="readout" class="readout" title="Größe des Lupenausschnitts auf der Seite">36 × 27 mm</span>
+    <button class="lb" data-zoom="1.25" aria-label="Größerer Ausschnitt"><svg class="ico"><use href="#i-zout"/></svg></button>
+    <button class="lb" data-zoom="0.8" aria-label="Stärker vergrößern"><svg class="ico"><use href="#i-zin"/></svg></button>
+  </div>
+
+  <div id="pad" class="pad">
+    <p id="hint" class="hint"><b>Hier mit dem Daumen schreiben</b>Am Strichende kurz halten macht die Linie gerade – ideal für Bruchstriche.</p>
+  </div>
+
+  <div id="scrim" class="scrim" hidden></div>
+
+  <div id="widthpop" class="pop widthpop" hidden role="dialog" aria-label="Strichstärke">
+    <button data-w="1.8"><i style="height:2px"></i>Fein</button>
+    <button data-w="2.6"><i style="height:3px"></i>Mittel</button>
+    <button data-w="4"><i style="height:5px"></i>Dick</button>
+  </div>
+
+  <div id="menu" class="pop menu" hidden role="dialog" aria-label="Notiz-Einstellungen">
+    <div class="sec">
+      <label class="label" for="rename">Titel</label>
+      <input id="rename" class="field" type="text" autocomplete="off" enterkeyhint="done" maxlength="80">
+    </div>
+    <div class="sec">
+      <span class="label">Papier</span>
+      <div class="seg" id="paper-seg">
+        <button data-paper="grid"><span class="pv grid"></span>Kariert</button>
+        <button data-paper="lines"><span class="pv lines"></span>Liniert</button>
+        <button data-paper="dots"><span class="pv dots"></span>Punkte</button>
+        <button data-paper="blank"><span class="pv"></span>Blanko</button>
+      </div>
+    </div>
+    <div class="sec">
+      <span class="label">Darstellung</span>
+      <div class="seg" id="theme-seg" style="--n:3">
+        <button data-appearance="system">Wie System</button>
+        <button data-appearance="light">Hell</button>
+        <button data-appearance="dark">Dunkel</button>
+      </div>
+    </div>
+    <label class="switch" for="auto">Lupe rückt automatisch weiter <input id="auto" type="checkbox" checked></label>
+    <div class="actions">
+      <div id="exports">
+        <button id="x-pdf" class="act"><svg class="ico"><use href="#i-doc"/></svg>Als PDF sichern (A4)</button>
+        <button id="x-png" class="act"><svg class="ico"><use href="#i-image"/></svg>Als Bild sichern</button>
+      </div>
+      <button id="x-clear" class="act danger"><svg class="ico"><use href="#i-trash"/></svg><span>Seite leeren</span></button>
+    </div>
+  </div>
+
+  <section id="library" class="library" hidden aria-label="Alle Notizen">
+    <div class="lib-head">
+      <div>
+        <h1>Kladde</h1>
+        <span id="lib-count" class="label">0 Notizen</span>
+      </div>
+      <div class="lib-tools">
+        <button id="lib-backup" class="pill" aria-label="Alle Notizen als Datei sichern">Sichern</button>
+        <button id="lib-import" class="pill" aria-label="Sicherung laden">Laden</button>
+        <button id="lib-close" class="tb" aria-label="Zurück zur Notiz"><svg class="ico"><use href="#i-close"/></svg></button>
+      </div>
+      <input id="import-file" type="file" accept="application/json,.json" hidden>
+    </div>
+    <ul id="lib-list" class="lib-list"></ul>
+    <p id="lib-empty" class="lib-empty" hidden>Noch nichts gespeichert. Alles, was du schreibst, landet automatisch hier.</p>
+    <div class="lib-foot">
+      <span id="sync" class="sync"></span>
+      <button id="lib-new" class="fab"><svg class="ico"><use href="#i-plus"/></svg>Neue Notiz</button>
+    </div>
+  </section>
+
+  <div id="sharebar" class="sharebar" hidden role="dialog" aria-label="Datei bereit">
+    <span id="share-name" class="name"></span>
+    <button id="share-go" class="pill primary">Teilen</button>
+    <button id="share-x" class="tb" aria-label="Schließen"><svg class="ico"><use href="#i-close"/></svg></button>
+  </div>
+
+  <div id="toast" class="toast" hidden role="status"></div>
+</div>
+
+<script>
+(() => {
+"use strict";
+
+// ───────── Konstanten ─────────
+// Die Seite lebt in einem eigenen Koordinatensystem: 1000 Einheiten breit ≙ 210 mm (A4).
+const PAGE_W = 1000;
+const SHEET_H = 1414;        // A4-Höhe in Einheiten
+const MM = 0.21;             // Millimeter pro Einheit
+const GRID = 25;             // Kästchen ≈ 5 mm
+const MARGIN = 40;           // linker Rand für „neue Zeile“
+const SMOOTH = 0.45;         // Glättung: 0 = roh … 0.8 = sehr weich
+const ZONE = 0.75;           // ab 75 % der Lupenbreite wird weitergerückt
+const HOLD_MS = 500;         // so lange ruhen → Linie begradigen
+const ERASER_R = 12;         // Radierer-Radius in Bildschirmpunkten
+const PAPER_LABEL = { grid: "kariert", lines: "liniert", dots: "Punkte", blank: "blanko" };
+const LIGHT = { paper: "#ffffff", rule: "rgba(46,96,176,0.22)", dot: "rgba(46,96,176,0.45)",
+  ink: { ink: "#15171b", blue: "#1f4fd1", red: "#d02b2b", green: "#178a4c" } };
+const JSPDF_URL = "vendor/jspdf.umd.min.js";
+
+const $ = (s) => document.querySelector(s);
+const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
+const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+// ───────── Lokaler Speicher (Zwischenablage für unterwegs) ─────────
+const LS = {
+  get(k) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (_) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (_) { return false; } },
+  del(k) { try { localStorage.removeItem(k); } catch (_) {} },
+  keys(prefix) {
+    const out = [];
+    try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(prefix)) out.push(k); } } catch (_) {}
+    return out;
+  },
+};
+
+const prefs = Object.assign(
+  { appearance: "system", paper: "grid", width: 2.6, color: "ink", autoAdvance: true, hintSeen: false },
+  LS.get("kladde:prefs") || {}
+);
+const savePrefs = () => LS.set("kladde:prefs", prefs);
+
+// ───────── Zustand ─────────
+let note = null;             // aktuelle Notiz
+let live = null;             // Strich, der gerade entsteht
+let tool = "pen";
+let lupeOn = true;
+let padAspect = 1.3;         // Breite/Höhe des Schreibfelds
+let pal = null;              // Farben aus dem aktuellen Theme
+let page = null, pad = null; // die beiden Zeichenflächen
+let pendingFile = null;
+let dirty = false, saveT = 0, advanceT = 0, toastT = 0;
+const undoStack = [], redoStack = [];
+
+// ───────── Geometrie ─────────
+function bboxOf(p, pad) {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (let i = 0; i < p.length; i += 2) {
+    const x = p[i], y = p[i + 1];
+    if (x < x0) x0 = x; if (x > x1) x1 = x;
+    if (y < y0) y0 = y; if (y > y1) y1 = y;
+  }
+  return { x0: x0 - pad, y0: y0 - pad, x1: x1 + pad, y1: y1 + pad };
+}
+const hit = (a, b) => a.x0 <= b.x1 && a.x1 >= b.x0 && a.y0 <= b.y1 && a.y1 >= b.y0;
+
+function segDist2(px, py, ax, ay, bx, by) {
+  const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy;
+  const t = l2 > 1e-12 ? clamp(((px - ax) * dx + (py - ay) * dy) / l2, 0, 1) : 0;
+  const ex = ax + t * dx - px, ey = ay + t * dy - py;
+  return ex * ex + ey * ey;
+}
+
+function makeStroke(pts, w, c) { return { pts, w, c, b: bboxOf(pts, w), path: null }; }
+
+function hitStroke(s, px, py, r) {
+  const b = s.b;
+  if (px < b.x0 - r || px > b.x1 + r || py < b.y0 - r || py > b.y1 + r) return false;
+  const rr = r + s.w / 2, rr2 = rr * rr, p = s.pts;
+  if (p.length === 2) { const dx = px - p[0], dy = py - p[1]; return dx * dx + dy * dy <= rr2; }
+  for (let i = 0; i + 3 < p.length; i += 2) if (segDist2(px, py, p[i], p[i + 1], p[i + 2], p[i + 3]) <= rr2) return true;
+  return false;
+}
+
+// Ramer–Douglas–Peucker: wirft fast kollineare Punkte weg (spart Speicher, Form bleibt)
+function simplify(p, tol) {
+  const n = p.length / 2;
+  if (n < 3) return p;
+  const keep = new Uint8Array(n); keep[0] = keep[n - 1] = 1;
+  const stack = [[0, n - 1]], tol2 = tol * tol;
+  while (stack.length) {
+    const [a, b] = stack.pop();
+    let max = 0, idx = -1;
+    for (let i = a + 1; i < b; i++) {
+      const d = segDist2(p[2 * i], p[2 * i + 1], p[2 * a], p[2 * a + 1], p[2 * b], p[2 * b + 1]);
+      if (d > max) { max = d; idx = i; }
+    }
+    if (max > tol2) { keep[idx] = 1; stack.push([a, idx], [idx, b]); }
+  }
+  const out = [];
+  for (let i = 0; i < n; i++) if (keep[i]) out.push(p[2 * i], p[2 * i + 1]);
+  return out;
+}
+
+function roughlyStraight(p, tol) {
+  const n = p.length;
+  if (n < 4) return false;
+  const ax = p[0], ay = p[1], bx = p[n - 2], by = p[n - 1];
+  const chord = Math.hypot(bx - ax, by - ay);
+  if (!chord) return false;
+  let len = 0, dev = 0;
+  for (let i = 2; i < n; i += 2) {
+    len += Math.hypot(p[i] - p[i - 2], p[i + 1] - p[i - 1]);
+    dev = Math.max(dev, Math.sqrt(segDist2(p[i], p[i + 1], ax, ay, bx, by)));
+  }
+  return dev <= tol + 0.08 * chord && len <= 1.25 * chord;
+}
+
+// fast waagerecht → exakt waagerecht (Bruchstrich), fast senkrecht → exakt senkrecht
+function snapAngle(ax, ay, bx, by) {
+  const ang = Math.atan2(Math.abs(by - ay), Math.abs(bx - ax)), tol = 8 * Math.PI / 180;
+  if (ang < tol) return [bx, ay];
+  if (ang > Math.PI / 2 - tol) return [ax, by];
+  return [bx, by];
+}
+
+// Quadratische Bézier-Stücke von Mittelpunkt zu Mittelpunkt → weich, ohne Ecken
+function tracePath(c, p) {
+  const n = p.length / 2;
+  c.moveTo(p[0], p[1]);
+  if (n <= 2) { c.lineTo(p[p.length - 2], p[p.length - 1]); return; }
+  for (let i = 1; i < n - 1; i++) {
+    const x = p[2 * i], y = p[2 * i + 1];
+    c.quadraticCurveTo(x, y, (x + p[2 * i + 2]) / 2, (y + p[2 * i + 3]) / 2);
+  }
+  c.lineTo(p[2 * n - 2], p[2 * n - 1]);
+}
+
+function drawStroke(c, s, inks, minW) {
+  const w = Math.max(s.w, minW || 0), col = inks[s.c] || inks.ink;
+  if (s.pts.length === 2) {
+    c.fillStyle = col; c.beginPath(); c.arc(s.pts[0], s.pts[1], w * 0.65, 0, Math.PI * 2); c.fill();
+    return;
+  }
+  c.strokeStyle = col; c.lineWidth = w; c.lineCap = "round"; c.lineJoin = "round";
+  if (s === live) { c.beginPath(); tracePath(c, s.pts); c.stroke(); return; }
+  if (!s.path) { s.path = new Path2D(); tracePath(s.path, s.pts); }
+  c.stroke(s.path);
+}
+
+function drawPaper(c, style, vis, pageH, hair, P) {
+  const x0 = Math.max(0, vis.x0), x1 = Math.min(PAGE_W, vis.x1);
+  const y0 = Math.max(0, vis.y0), y1 = Math.min(pageH, vis.y1);
+  if (x1 <= x0 || y1 <= y0) return;
+  c.fillStyle = P.paper; c.fillRect(x0, y0, x1 - x0, y1 - y0);
+  if (style === "blank") return;
+  if (style === "dots") {
+    const r = Math.max(hair * 1.4, 0.9);
+    c.fillStyle = P.dot; c.beginPath();
+    for (let y = Math.ceil(y0 / GRID) * GRID; y <= y1; y += GRID)
+      for (let x = Math.ceil(x0 / GRID) * GRID; x <= x1; x += GRID) { c.moveTo(x + r, y); c.arc(x, y, r, 0, Math.PI * 2); }
+    c.fill();
+    return;
+  }
+  const gy = style === "lines" ? GRID * 1.6 : GRID;
+  c.strokeStyle = P.rule; c.lineWidth = hair; c.beginPath();
+  if (style === "grid") for (let x = Math.ceil(x0 / GRID) * GRID; x <= x1; x += GRID) { c.moveTo(x, y0); c.lineTo(x, y1); }
+  for (let y = Math.ceil(y0 / gy) * gy; y <= y1; y += gy) { c.moveTo(x0, y); c.lineTo(x1, y); }
+  c.stroke();
+}
+
+function roundRect(c, x, y, w, h, r) {
+  c.beginPath();
+  c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r);
+  c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r);
+  c.arcTo(x, y, x + w, y, r);
+  c.closePath();
+}
+
+function contentTop() { let t = Infinity; for (const s of note.strokes) if (s.b.y0 < t) t = s.b.y0; return t; }
+function contentBottom() { let b = 0; for (const s of note.strokes) if (s.b.y1 > b) b = s.b.y1; return b; }
+function pageHeight() { return Math.max(SHEET_H, contentBottom() + 600, note.lupe.y + note.lupe.h + 600); }
+function sheetCount() { return Math.max(1, Math.ceil(contentBottom() / SHEET_H)); }
+
+// ───────── Speicherformat: Delta-kodiert, 1/10 Einheit Auflösung ─────────
+const CODE = { ink: "i", blue: "b", red: "r", green: "g" }, DECODE = { i: "ink", b: "blue", r: "red", g: "green" };
+function encodeInk(strokes) {
+  return strokes.map((s) => {
+    const out = [CODE[s.c] || "i", Math.round(s.w * 10)];
+    let px = 0, py = 0;
+    for (let i = 0; i < s.pts.length; i += 2) {
+      const x = Math.round(s.pts[i] * 10), y = Math.round(s.pts[i + 1] * 10);
+      out.push(x - px, y - py); px = x; py = y;
+    }
+    return out.join(",");
+  }).join(";");
+}
+function decodeInk(str) {
+  if (!str) return [];
+  const list = [];
+  for (const part of str.split(";")) {
+    const a = part.split(",");
+    if (a.length < 4) continue;
+    const pts = [];
+    let x = 0, y = 0;
+    for (let i = 2; i + 1 < a.length; i += 2) { x += +a[i]; y += +a[i + 1]; pts.push(x / 10, y / 10); }
+    list.push(makeStroke(pts, (+a[1]) / 10 || 2.6, DECODE[a[0]] || "ink"));
+  }
+  return list;
+}
+
+// ───────── Ablage: direkt auf dem iPhone (IndexedDB) ─────────
+function idbReq(r) { return new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+
+const Store = {
+  db: null,
+  metas: new Map(),
+  onChange() {},
+
+  async init() {
+    try {
+      this.db = await new Promise((res, rej) => {
+        const r = indexedDB.open("kladde", 1);
+        r.onupgradeneeded = () => {
+          const d = r.result;
+          if (!d.objectStoreNames.contains("meta")) d.createObjectStore("meta", { keyPath: "id" });
+          if (!d.objectStoreNames.contains("body")) d.createObjectStore("body", { keyPath: "id" });
+        };
+        r.onsuccess = () => res(r.result);
+        r.onerror = () => rej(r.error);
+      });
+      const all = await idbReq(this.db.transaction("meta").objectStore("meta").getAll());
+      for (const m of all) if (m && m.id) this.metas.set(m.id, m);
+      // Bitte iOS, die Notizen nicht aufzuräumen, wenn der Speicher knapp wird
+      if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+    } catch (_) {
+      this.db = null;
+    }
+    setSync();
+    this.onChange();
+  },
+
+  list() { return [...this.metas.values()].sort((a, b) => (b.modified || 0) - (a.modified || 0)); },
+
+  async loadBody(id) {
+    if (!this.db) return null;
+    try { return await idbReq(this.db.transaction("body").objectStore("body").get(id)); } catch (_) { return null; }
+  },
+
+  save(meta, body) {
+    this.metas.set(meta.id, meta);
+    if (!this.db) { setStatus("nicht gesichert"); return Promise.resolve(); }
+    return new Promise((res) => {
+      let t;
+      try { t = this.db.transaction(["meta", "body"], "readwrite"); } catch (_) { setStatus("nicht gesichert"); res(); return; }
+      t.objectStore("meta").put(meta);
+      t.objectStore("body").put(body);
+      t.oncomplete = () => { setStatus("gesichert"); res(); };
+      t.onerror = t.onabort = () => { setStatus("nicht gesichert"); res(); };
+    });
+  },
+
+  remove(id) {
+    this.metas.delete(id);
+    if (this.db) {
+      try {
+        const t = this.db.transaction(["meta", "body"], "readwrite");
+        t.objectStore("meta").delete(id);
+        t.objectStore("body").delete(id);
+      } catch (_) {}
+    }
+    this.onChange();
+  },
+
+  async exportAll() {
+    const notes = [];
+    for (const m of this.list()) notes.push({ meta: m, body: await this.loadBody(m.id) });
+    return { app: "kladde", version: 1, exported: Date.now(), notes };
+  },
+
+  async importAll(data) {
+    if (!data || data.app !== "kladde" || !Array.isArray(data.notes)) throw new Error("format");
+    let n = 0;
+    for (const item of data.notes) {
+      const m = item && item.meta, b = item && item.body;
+      if (!m || !m.id || !b || typeof b.ink !== "string") continue;
+      const have = this.metas.get(m.id);
+      if (have && (have.modified || 0) >= (m.modified || 0)) continue;   // neuere Fassung behalten
+      await this.save(m, b);
+      n++;
+    }
+    this.onChange();
+    return n;
+  },
+};
+
+// ───────── Zeichenfläche (Seite oder Lupen-Schreibfeld) ─────────
+let rafId = 0;
+function schedule() {
+  if (rafId) return;
+  rafId = requestAnimationFrame(() => { rafId = 0; page.render(); pad.render(); });
+}
+function invalidateOverlays() { page.invalidate(false); pad.invalidate(false); }
+function invalidateBases() { page.invalidate(true); pad.invalidate(true); }
+function coalesced(e) { const l = e.getCoalescedEvents ? e.getCoalescedEvents() : null; return l && l.length ? l : [e]; }
+
+class Surface {
+  constructor(host, role) {
+    this.host = host; this.role = role;
+    this.base = document.createElement("canvas");   // Papier + fertige Striche
+    this.over = document.createElement("canvas");   // Live-Strich, Lupenrahmen, Radierer
+    this.base.setAttribute("aria-hidden", "true");
+    this.over.setAttribute("role", "img");
+    this.over.setAttribute("aria-label", role === "page" ? "Notizseite" : "Schreibfeld der Lupe");
+    host.prepend(this.base, this.over);
+    this.bctx = this.base.getContext("2d");
+    this.octx = this.over.getContext("2d");
+    this.w = 0; this.h = 0; this.dpr = 1; this.fitW = 0;
+    this.s = 0.4; this.ox = 0; this.oy = 0;          // nur Seite: Bildschirm = (Seite − o) · s
+    this.dirtyBase = true; this.dirtyOver = true;
+    this.ptrs = new Map(); this.mode = "idle";
+    this.start = null; this.last = null; this.anchor = null; this.smooth = null;
+    this.straight = false; this.holdT = 0; this.erased = []; this.eraser = null; this.pinch = null; this.rect = null;
+    const o = this.over;
+    o.addEventListener("pointerdown", (e) => this.down(e));
+    o.addEventListener("pointermove", (e) => this.move(e));
+    o.addEventListener("pointerup", (e) => this.up(e, false));
+    o.addEventListener("pointercancel", (e) => this.up(e, true));
+    o.addEventListener("lostpointercapture", (e) => { if (this.ptrs.has(e.pointerId)) this.up(e, true); });
+    new ResizeObserver(() => this.resize()).observe(host);
+  }
+
+  get vs() { return this.role === "page" ? this.s : (this.w || 1) / note.lupe.w; }
+  get vx() { return this.role === "page" ? this.ox : note.lupe.x; }
+  get vy() { return this.role === "page" ? this.oy : note.lupe.y; }
+  toPage(x, y) { const s = this.vs; return [x / s + this.vx, y / s + this.vy]; }
+  local(e) { const r = this.rect || (this.rect = this.over.getBoundingClientRect()); return [e.clientX - r.left, e.clientY - r.top]; }
+  invalidate(base = true) { if (base) this.dirtyBase = true; this.dirtyOver = true; schedule(); }
+
+  resize() {
+    const r = this.host.getBoundingClientRect();
+    const w = Math.round(r.width), h = Math.round(r.height);
+    this.rect = null;
+    if (w < 2 || h < 2) { this.w = 0; return; }
+    const dpr = Math.min(window.devicePixelRatio || 1, 3);
+    if (w !== this.w || h !== this.h || dpr !== this.dpr) {
+      this.w = w; this.h = h; this.dpr = dpr;
+      for (const cv of [this.base, this.over]) {
+        cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+        cv.style.width = w + "px"; cv.style.height = h + "px";
+      }
+    }
+    if (this.role === "page") {
+      if (Math.abs(w - this.fitW) > 0.5) this.fit();
+      this.clampView();
+      if (lupeOn) this.reveal();
+    } else {
+      padAspect = w / h;
+      note.lupe.h = note.lupe.w / padAspect;
+      if (page) page.invalidate(false);
+      updateReadout();
+    }
+    this.invalidate();
+  }
+
+  fit() {
+    this.fitW = this.w;
+    this.s = this.w / PAGE_W;
+    this.ox = 0;
+    this.oy = Math.max(0, note.lupe.y - 3 * GRID);
+  }
+
+  clampView() {
+    if (this.role !== "page" || !this.w) return;
+    const vw = this.w / this.s, vh = this.h / this.s, ph = pageHeight();
+    this.ox = vw >= PAGE_W ? (PAGE_W - vw) / 2 : clamp(this.ox, 0, PAGE_W - vw);
+    this.oy = vh >= ph ? 0 : clamp(this.oy, 0, ph - vh);
+  }
+
+  // Seite so schieben, dass der Lupenrahmen sichtbar bleibt
+  reveal() {
+    if (this.role !== "page" || !this.w || !lupeOn) return;
+    const L = note.lupe, s = this.s, m = 24 / s;
+    const vx0 = this.ox, vy0 = this.oy, vw = this.w / s, vh = this.h / s;
+    let ox = this.ox, oy = this.oy;
+    if (L.y + L.h + m > vy0 + vh) oy = L.y + L.h + m - vh;
+    if (L.y - m < vy0) oy = L.y - m;
+    if (L.x + L.w + m > vx0 + vw) ox = L.x + L.w + m - vw;
+    if (L.x - m < vx0) ox = L.x - m;
+    if (ox !== this.ox || oy !== this.oy) { this.ox = ox; this.oy = oy; this.clampView(); this.invalidate(); }
+  }
+
+  render() {
+    if (!this.w || !note) return;
+    const d = this.dpr, s = this.vs, vx = this.vx, vy = this.vy, k = d * s;
+    if (this.dirtyBase) {
+      this.dirtyBase = false;
+      const c = this.bctx;
+      c.setTransform(1, 0, 0, 1, 0, 0);
+      c.fillStyle = pal.desk;
+      c.fillRect(0, 0, this.base.width, this.base.height);
+      c.setTransform(k, 0, 0, k, -vx * k, -vy * k);
+      const vis = { x0: vx, y0: vy, x1: vx + this.w / s, y1: vy + this.h / s };
+      drawPaper(c, note.paper, vis, pageHeight(), 0.6 / s, pal);
+      for (const st of note.strokes) if (hit(st.b, vis)) drawStroke(c, st, pal.ink);
+    }
+    if (this.dirtyOver) {
+      this.dirtyOver = false;
+      const c = this.octx;
+      c.setTransform(1, 0, 0, 1, 0, 0);
+      c.clearRect(0, 0, this.over.width, this.over.height);
+      if (live) { c.setTransform(k, 0, 0, k, -vx * k, -vy * k); drawStroke(c, live, pal.ink); }
+      c.setTransform(d, 0, 0, d, 0, 0);
+      if (this.role === "page" && lupeOn) this.drawLupe(c);
+      if (this.role === "pad" && prefs.autoAdvance) this.drawZone(c);
+      if (this.eraser) {
+        c.strokeStyle = pal.fg2; c.lineWidth = 1;
+        c.beginPath(); c.arc(this.eraser.x, this.eraser.y, ERASER_R, 0, Math.PI * 2); c.stroke();
+      }
+    }
+  }
+
+  // Neuer Strich direkt auf die Basis – spart das komplette Neuzeichnen
+  addToBase(st) {
+    if (this.dirtyBase || !this.w) return;
+    const k = this.dpr * this.vs;
+    this.bctx.setTransform(k, 0, 0, k, -this.vx * k, -this.vy * k);
+    drawStroke(this.bctx, st, pal.ink);
+  }
+
+  drawLupe(c) {
+    const L = note.lupe, s = this.s;
+    const x = (L.x - this.ox) * s, y = (L.y - this.oy) * s, w = L.w * s, h = L.h * s;
+    c.fillStyle = pal.lupeSoft; c.strokeStyle = pal.lupe; c.lineWidth = 1.5;
+    roundRect(c, x, y, w, h, 4); c.fill(); c.stroke();
+    if (prefs.autoAdvance) {
+      const zx = x + w * ZONE;
+      c.setLineDash([3, 3]); c.lineWidth = 1;
+      c.beginPath(); c.moveTo(zx, y + 3); c.lineTo(zx, y + h - 3); c.stroke();
+      c.setLineDash([]);
+    }
+  }
+
+  drawZone(c) {
+    const x = Math.round(this.w * ZONE) + 0.5;
+    c.fillStyle = pal.lupeSoft; c.fillRect(x, 0, this.w - x, this.h);
+    c.strokeStyle = pal.lupe; c.globalAlpha = 0.55; c.lineWidth = 1; c.setLineDash([4, 4]);
+    c.beginPath(); c.moveTo(x, 0); c.lineTo(x, this.h); c.stroke();
+    c.setLineDash([]); c.globalAlpha = 1;
+  }
+
+  // ── Eingabe ──
+  down(e) {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    e.preventDefault();
+    // Erster Finger einer neuen Berührung: verwaiste Pointer (ohne „up“) vergessen
+    if (e.isPrimary && this.ptrs.size) { this.ptrs.clear(); this.mode = "idle"; this.pinch = null; }
+    try { this.over.setPointerCapture(e.pointerId); } catch (_) {}
+    this.rect = this.over.getBoundingClientRect();
+    const [x, y] = this.local(e);
+    this.ptrs.set(e.pointerId, { x, y });
+    closePopovers();
+    if (this.ptrs.size >= 2) {
+      this.cancel();                                   // zweiter Finger = Navigation
+      if (this.role === "page") this.startPinch(); else this.mode = "ignore";
+      return;
+    }
+    if (this.mode !== "idle") return;
+    this.start = { x, y }; this.last = { x, y };
+    if (this.role === "page" && lupeOn) {
+      // Mit Lupe ist die Seite zum Navigieren da: Rahmen ziehen, Seite schieben, Tippen setzt die Lupe
+      const [px, py] = this.toPage(x, y), L = note.lupe, m = 14 / this.s;
+      const inside = px >= L.x - m && px <= L.x + L.w + m && py >= L.y - m && py <= L.y + L.h + m;
+      this.mode = inside ? "lupe" : "pan";
+      return;
+    }
+    if (tool === "eraser") { this.mode = "erase"; this.erased = []; this.eraser = null; this.eraseAt(x, y); return; }
+    this.beginStroke(x, y);
+  }
+
+  move(e) {
+    if (!this.ptrs.has(e.pointerId)) return;
+    e.preventDefault();
+    const [x, y] = this.local(e);
+    this.ptrs.set(e.pointerId, { x, y });
+    switch (this.mode) {
+      case "pinch": this.updatePinch(); break;
+      case "draw": for (const ev of coalesced(e)) { const [cx, cy] = this.local(ev); this.addSample(cx, cy); } break;
+      case "erase": for (const ev of coalesced(e)) { const [cx, cy] = this.local(ev); this.eraseAt(cx, cy); } break;
+      case "lupe":
+        moveLupe((x - this.last.x) / this.s, (y - this.last.y) / this.s);
+        this.last = { x, y };
+        break;
+      case "pan":
+        this.ox -= (x - this.last.x) / this.s; this.oy -= (y - this.last.y) / this.s;
+        this.last = { x, y };
+        this.clampView(); this.invalidate();
+        break;
+    }
+  }
+
+  up(e, cancelled) {
+    if (!this.ptrs.has(e.pointerId)) return;
+    const [x, y] = this.local(e);
+    this.ptrs.delete(e.pointerId);
+    if (cancelled) this.cancel();
+    else if (this.mode === "draw") this.finishStroke(x, y);
+    else if (this.mode === "erase") this.finishErase();
+    else if (this.mode === "pan" && Math.hypot(x - this.start.x, y - this.start.y) < 8) {
+      const [px, py] = this.toPage(x, y);
+      placeLupe(px, py);
+    }
+    this.mode = this.ptrs.size ? "ignore" : "idle";
+    if (!this.ptrs.size) this.pinch = null;
+  }
+
+  cancel() {
+    clearTimeout(this.holdT);
+    if (this.mode === "draw" && live) { live = null; invalidateOverlays(); }
+    if (this.mode === "erase") this.finishErase();
+    this.mode = "ignore";
+  }
+
+  startPinch() {
+    const [a, b] = [...this.ptrs.values()];
+    this.pinch = { d0: Math.hypot(b.x - a.x, b.y - a.y) || 1, s0: this.s, anchor: this.toPage((a.x + b.x) / 2, (a.y + b.y) / 2) };
+    this.mode = "pinch";
+  }
+
+  updatePinch() {
+    const [a, b] = [...this.ptrs.values()];
+    if (!a || !b || !this.pinch) return;
+    const fit = this.w / PAGE_W;
+    this.s = clamp(this.pinch.s0 * Math.hypot(b.x - a.x, b.y - a.y) / this.pinch.d0, fit * 0.6, fit * 10);
+    this.ox = this.pinch.anchor[0] - (a.x + b.x) / 2 / this.s;
+    this.oy = this.pinch.anchor[1] - (a.y + b.y) / 2 / this.s;
+    this.clampView(); this.invalidate();
+  }
+
+  // ── Schreiben ──
+  beginStroke(x, y) {
+    this.mode = "draw";
+    this.straight = false;
+    this.anchor = { x, y };
+    const [px, py] = this.toPage(x, y);
+    this.smooth = [px, py];
+    live = makeStroke([px, py], prefs.width, prefs.color);
+    if (this.role === "pad") { cancelAdvance(); hideHint(); }
+    this.scheduleHold();
+    invalidateOverlays();
+  }
+
+  addSample(x, y) {
+    if (!live || Math.hypot(x - this.last.x, y - this.last.y) < 0.5) return;
+    this.last = { x, y };
+    if (Math.hypot(x - this.anchor.x, y - this.anchor.y) > 5) { this.anchor = { x, y }; this.scheduleHold(); }
+    const [rx, ry] = this.toPage(x, y);
+    if (this.straight) {
+      // eingerastet: nur noch der Endpunkt folgt dem Finger
+      const sx = live.pts[0], sy = live.pts[1];
+      live.pts = [sx, sy, ...snapAngle(sx, sy, rx, ry)];
+      live.b = bboxOf(live.pts, live.w);
+    } else {
+      // exponentielle Glättung filtert das Zittern des Daumens heraus
+      const a = 1 - SMOOTH;
+      this.smooth[0] += a * (rx - this.smooth[0]);
+      this.smooth[1] += a * (ry - this.smooth[1]);
+      live.pts.push(this.smooth[0], this.smooth[1]);
+    }
+    invalidateOverlays();
+  }
+
+  scheduleHold() {
+    clearTimeout(this.holdT);
+    if (this.mode === "draw" && !this.straight) this.holdT = setTimeout(() => this.holdFired(), HOLD_MS);
+  }
+
+  holdFired() {
+    if (this.mode !== "draw" || this.straight || !live || live.pts.length < 6) return;
+    const sx = live.pts[0], sy = live.pts[1];
+    const [ex, ey] = this.toPage(this.last.x, this.last.y);
+    if (Math.hypot(ex - sx, ey - sy) * this.vs < 28) return;
+    if (!roughlyStraight([...live.pts, ex, ey], 4 / this.vs)) return;
+    live.pts = [sx, sy, ...snapAngle(sx, sy, ex, ey)];
+    live.b = bboxOf(live.pts, live.w);
+    this.straight = true;
+    if (navigator.vibrate) { try { navigator.vibrate(8); } catch (_) {} }
+    invalidateOverlays();
+  }
+
+  finishStroke(x, y) {
+    clearTimeout(this.holdT);
+    const st = live;
+    live = null;
+    if (!st) return;
+    if (!this.straight) {
+      // Glättung hinkt minimal hinterher → bis zum echten Endpunkt ziehen
+      const [rx, ry] = this.toPage(x, y), p = st.pts, n = p.length;
+      if (Math.hypot(rx - p[n - 2], ry - p[n - 1]) * this.vs > 0.5) p.push(rx, ry);
+      st.pts = simplify(p, Math.max(0.05, 0.25 / this.vs));
+    }
+    st.b = bboxOf(st.pts, st.w);
+    addStrokes([st], true);
+    if (this.role === "pad") padStrokeEnded(st);
+  }
+
+  // ── Radieren (ganze Striche) ──
+  eraseAt(x, y) {
+    const pts = [];
+    if (this.eraser) {
+      const dx = x - this.eraser.x, dy = y - this.eraser.y;
+      const n = Math.max(1, Math.ceil(Math.hypot(dx, dy) / (ERASER_R * 0.8)));
+      for (let i = 1; i <= n; i++) pts.push([this.eraser.x + dx * i / n, this.eraser.y + dy * i / n]);
+    } else pts.push([x, y]);
+    const r = ERASER_R / this.vs;
+    const removed = [];
+    for (const [ex, ey] of pts) {
+      const [px, py] = this.toPage(ex, ey);
+      const hits = note.strokes.filter((s) => hitStroke(s, px, py, r));
+      if (hits.length) {
+        const set = new Set(hits);
+        note.strokes = note.strokes.filter((s) => !set.has(s));
+        removed.push(...hits);
+      }
+    }
+    if (removed.length) { this.erased.push(...removed); invalidateBases(); }
+    this.eraser = { x, y };
+    this.invalidate(false);
+  }
+
+  finishErase() {
+    if (this.erased.length) { pushUndo({ t: "remove", s: this.erased }); markDirty(); }
+    this.erased = []; this.eraser = null;
+    this.invalidate(false);
+  }
+}
+
+// ───────── Striche & Rückgängig ─────────
+function addStrokes(list, record) {
+  note.strokes.push(...list);
+  for (const st of list) { page.addToBase(st); pad.addToBase(st); }
+  if (record) pushUndo({ t: "add", s: list });
+  invalidateOverlays();
+  markDirty();
+}
+function removeStrokes(list) {
+  const set = new Set(list);
+  note.strokes = note.strokes.filter((s) => !set.has(s));
+  invalidateBases();
+  markDirty();
+}
+function pushUndo(a) {
+  undoStack.push(a);
+  if (undoStack.length > 300) undoStack.shift();
+  redoStack.length = 0;
+  updateUndo();
+}
+function undo() {
+  const a = undoStack.pop();
+  if (!a) return;
+  if (a.t === "add") removeStrokes(a.s); else addStrokes(a.s, false);
+  redoStack.push(a);
+  updateUndo();
+}
+function redo() {
+  const a = redoStack.pop();
+  if (!a) return;
+  if (a.t === "add") addStrokes(a.s, false); else removeStrokes(a.s);
+  undoStack.push(a);
+  updateUndo();
+}
+function updateUndo() {
+  $("#t-undo").disabled = !undoStack.length;
+  $("#t-redo").disabled = !redoStack.length;
+}
+
+// ───────── Schreiblupe ─────────
+function setLupe(L, reveal = true) {
+  L.w = clamp(L.w, 90, 520);
+  L.h = L.w / padAspect;
+  L.x = clamp(L.x, 0, PAGE_W - L.w);
+  L.y = Math.max(0, L.y);
+  note.lupe = L;
+  pad.invalidate();
+  page.invalidate(false);
+  if (reveal) page.reveal();
+  updateReadout();
+}
+function moveLupe(dx, dy) { cancelAdvance(); const L = note.lupe; setLupe({ x: L.x + dx, y: L.y + dy, w: L.w, h: L.h }, false); }
+function placeLupe(px, py) { cancelAdvance(); const L = note.lupe; setLupe({ x: px - L.w * 0.1, y: py - L.h / 2, w: L.w, h: L.h }); }
+function stepLupe(dir) {
+  cancelAdvance();
+  if (dir === "right") return advance();
+  if (dir === "newline") return newline();
+  const L = Object.assign({}, note.lupe);
+  if (dir === "left") L.x -= L.w * 0.5;
+  if (dir === "up") L.y -= GRID;
+  if (dir === "down") L.y += GRID;
+  setLupe(L);
+}
+function zoomLupe(f) {
+  cancelAdvance();
+  const L = Object.assign({}, note.lupe), mid = L.y + L.h / 2;
+  L.w = clamp(L.w * f, 90, 520);
+  L.h = L.w / padAspect;
+  L.y = mid - L.h / 2;
+  setLupe(L);
+}
+function advance() {
+  const L = Object.assign({}, note.lupe);
+  if (L.x + L.w >= PAGE_W - 1) return newline();
+  L.x += L.w * 0.55;
+  setLupe(L);
+}
+function newline() {
+  const L = Object.assign({}, note.lupe);
+  L.x = MARGIN;
+  L.y = Math.round((L.y + L.h) / GRID) * GRID;
+  setLupe(L);
+}
+function cancelAdvance() { clearTimeout(advanceT); }
+// Endet ein Strich im rechten Viertel, rückt die Lupe kurz danach weiter –
+// außer du setzt vorher schon den nächsten Strich an.
+function padStrokeEnded(st) {
+  if (!prefs.autoAdvance || !lupeOn) return;
+  const L = note.lupe;
+  if (st.b.x1 - st.w <= L.x + L.w * ZONE) return;
+  cancelAdvance();
+  advanceT = setTimeout(advance, 650);
+}
+function updateReadout() {
+  const L = note.lupe;
+  $("#readout").textContent = Math.round(L.w * MM) + " × " + Math.round(L.h * MM) + " mm";
+}
+function setLupeOn(on) {
+  lupeOn = on;
+  $("#lupebar").hidden = !on;
+  $("#pad").hidden = !on;
+  const b = $("#t-lupe");
+  b.classList.toggle("on", on);
+  b.setAttribute("aria-pressed", String(on));
+  cancelAdvance();
+  page.invalidate(false);
+}
+
+// ───────── Notizen öffnen & sichern ─────────
+function defaultTitle(d) {
+  return "Notiz · " + d.toLocaleDateString("de-DE", { day: "numeric", month: "short" }) + ", " +
+    d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+}
+function freshNote() {
+  const now = Date.now();
+  return { id: newId(), title: defaultTitle(new Date(now)), created: now, modified: now, paper: prefs.paper,
+    lupe: { x: MARGIN, y: GRID * 2, w: 170, h: 170 / padAspect }, strokes: [], persisted: false };
+}
+
+function setNote(n) {
+  note = n;
+  live = null;
+  undoStack.length = 0; redoStack.length = 0;
+  dirty = false;
+  updateUndo();
+  note.lupe.h = note.lupe.w / padAspect;
+  page.fitW = 0;
+  page.resize();
+  updateTitle();
+  updateReadout();
+  updateMenu();
+  setStatus(n.persisted ? statusIdle() : "neu");
+  invalidateBases();
+}
+
+function markDirty() {
+  dirty = true;
+  note.modified = Date.now();
+  clearTimeout(saveT);
+  saveT = setTimeout(saveNow, 1200);
+}
+
+function makeThumb() {
+  if (!note.strokes.length) return "";
+  const W = 220, H = 154, k = W / PAGE_W;
+  const top = Math.max(0, contentTop() - 20);
+  const cv = document.createElement("canvas");
+  cv.width = W; cv.height = H;
+  const c = cv.getContext("2d");
+  c.setTransform(k, 0, 0, k, 0, -top * k);
+  const vis = { x0: 0, y0: top, x1: PAGE_W, y1: top + H / k };
+  const black = { ink: "#000", blue: "#000", red: "#000", green: "#000" };
+  for (const s of note.strokes) if (hit(s.b, vis)) drawStroke(c, s, black, 5);
+  return cv.toDataURL("image/png");
+}
+
+function saveNow() {
+  clearTimeout(saveT);
+  if (!dirty) return Promise.resolve();
+  dirty = false;
+  if (!note.strokes.length && !note.persisted) return Promise.resolve();
+  const L = note.lupe;
+  const meta = { kind: "meta", id: note.id, title: note.title, created: note.created, modified: note.modified,
+    paper: note.paper, sheets: sheetCount(), thumb: makeThumb() };
+  const body = { kind: "body", id: note.id, modified: note.modified,
+    lupe: { x: Math.round(L.x), y: Math.round(L.y), w: Math.round(L.w) }, ink: encodeInk(note.strokes) };
+  if (body.ink.length > 220000) toast("Diese Notiz wird sehr voll – fang am besten eine neue an.");
+  note.persisted = true;
+  const p = Store.save(meta, body);
+  Store.onChange();
+  return p;
+}
+
+async function leaveNote() {
+  cancelAdvance();
+  if (!note.strokes.length) {
+    clearTimeout(saveT); dirty = false;
+    if (note.persisted) Store.remove(note.id);   // leere Notizen nicht aufheben
+    return;
+  }
+  await saveNow();
+}
+
+async function openNote(meta) {
+  if (meta.id === note.id) { closeLibrary(); return; }
+  await leaveNote();
+  setStatus("lädt …");
+  const body = await Store.loadBody(meta.id);
+  const lupe = body && body.lupe ? { x: body.lupe.x, y: body.lupe.y, w: body.lupe.w || 170, h: 0 } : { x: MARGIN, y: GRID * 2, w: 170, h: 0 };
+  setNote({ id: meta.id, title: meta.title, created: meta.created, modified: meta.modified, paper: meta.paper || "grid",
+    lupe, strokes: decodeInk(body && body.ink), persisted: true });
+  closeLibrary();
+}
+
+async function startNewNote() {
+  await leaveNote();
+  setNote(freshNote());
+  closeLibrary();
+}
+
+// ───────── Export (PDF / Bild) ─────────
+function safeName(t) { return (t || "Notiz").replace(/[\\/:*?"<>|]+/g, "-").replace(/\s+/g, " ").trim() || "Notiz"; }
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    if (window.jspdf) { resolve(); return; }
+    const s = document.createElement("script");
+    s.src = src;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error("load"));
+    document.head.appendChild(s);
+  });
+}
+
+// Teilen braucht einen frischen Fingertipp – darum erst vorbereiten, dann „Teilen“ antippen lassen
+function offerFile(data, name, type) {
+  pendingFile = new File([data], name, { type });
+  $("#share-name").textContent = name;
+  $("#toast").hidden = true;
+  $("#sharebar").hidden = false;
+}
+function closeSharebar() { $("#sharebar").hidden = true; pendingFile = null; }
+async function sharePending() {
+  const f = pendingFile;
+  if (!f) return;
+  try {
+    if (navigator.canShare && navigator.canShare({ files: [f] })) {
+      await navigator.share({ files: [f] });
+    } else {
+      const url = URL.createObjectURL(f);
+      const a = document.createElement("a");
+      a.href = url; a.download = f.name;
+      document.body.append(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 15000);
+    }
+    closeSharebar();
+  } catch (e) {
+    if (e && e.name === "AbortError") return;
+    toast("Teilen ging gerade nicht.");
+  }
+}
+
+async function exportPDF() {
+  closePopovers();
+  if (!note.strokes.length) { toast("Die Seite ist noch leer."); return; }
+  toast("PDF wird erstellt …", 20000);
+  try {
+    await loadScript(JSPDF_URL);
+    const pdf = new window.jspdf.jsPDF({ unit: "pt", format: "a4", compress: true });
+    const pxW = 1654, k = pxW / PAGE_W, pxH = Math.round(SHEET_H * k);   // ≈ 200 dpi
+    const cv = document.createElement("canvas");
+    cv.width = pxW; cv.height = pxH;
+    const c = cv.getContext("2d");
+    const sheets = sheetCount();
+    for (let i = 0; i < sheets; i++) {
+      if (i) pdf.addPage();
+      c.setTransform(1, 0, 0, 1, 0, 0);
+      c.fillStyle = "#fff"; c.fillRect(0, 0, pxW, pxH);
+      c.setTransform(k, 0, 0, k, 0, -i * SHEET_H * k);
+      const vis = { x0: 0, y0: i * SHEET_H, x1: PAGE_W, y1: (i + 1) * SHEET_H };
+      drawPaper(c, note.paper, vis, vis.y1, 0.9, LIGHT);
+      for (const s of note.strokes) if (hit(s.b, vis)) drawStroke(c, s, LIGHT.ink);
+      pdf.addImage(cv.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, 595.28, 841.89);
+    }
+    offerFile(pdf.output("blob"), safeName(note.title) + ".pdf", "application/pdf");
+  } catch (_) {
+    toast("PDF ging gerade nicht.");
+  }
+}
+
+async function exportPNG() {
+  closePopovers();
+  if (!note.strokes.length) { toast("Die Seite ist noch leer."); return; }
+  const top = Math.max(0, contentTop() - 40), bottom = contentBottom() + 40;
+  const h = bottom - top;
+  let k = 2;
+  if (PAGE_W * k * h * k > 16e6) k = Math.sqrt(16e6 / (PAGE_W * h));
+  const cv = document.createElement("canvas");
+  cv.width = Math.round(PAGE_W * k); cv.height = Math.round(h * k);
+  const c = cv.getContext("2d");
+  c.setTransform(k, 0, 0, k, 0, -top * k);
+  const vis = { x0: 0, y0: top, x1: PAGE_W, y1: bottom };
+  drawPaper(c, note.paper, vis, bottom, 0.8, LIGHT);
+  for (const s of note.strokes) if (hit(s.b, vis)) drawStroke(c, s, LIGHT.ink);
+  const blob = await new Promise((r) => cv.toBlob(r, "image/png"));
+  if (!blob) { toast("Bild ging gerade nicht."); return; }
+  offerFile(blob, safeName(note.title) + ".png", "image/png");
+}
+
+// ───────── Oberfläche ─────────
+function readPalette() {
+  const cs = getComputedStyle(document.documentElement);
+  const g = (n) => cs.getPropertyValue(n).trim();
+  pal = { desk: g("--desk"), paper: g("--paper"), rule: g("--rule"), dot: g("--dot"), lupe: g("--lupe"), lupeSoft: g("--lupe-soft"), fg2: g("--fg-2"),
+    ink: { ink: g("--ink-ink"), blue: g("--ink-blue"), red: g("--ink-red"), green: g("--ink-green") } };
+}
+function refreshTheme() {
+  readPalette();
+  const chrome = getComputedStyle(document.documentElement).getPropertyValue("--chrome").trim();
+  for (const m of document.querySelectorAll('meta[name="theme-color"]')) m.setAttribute("content", chrome);
+  if (page) invalidateBases();
+}
+
+let themeBefore;   // Theme-Attribut vor unserer ersten eigenen Wahl
+function applyAppearance(v) {
+  const root = document.documentElement;
+  if (v === "light" || v === "dark") {
+    if (themeBefore === undefined) themeBefore = root.getAttribute("data-theme");
+    root.setAttribute("data-theme", v);
+  } else if (themeBefore !== undefined) {
+    if (themeBefore) root.setAttribute("data-theme", themeBefore); else root.removeAttribute("data-theme");
+    themeBefore = undefined;
+  }
+  refreshTheme();
+}
+
+function setStatus(t) { $("#status").textContent = t; }
+function statusIdle() { return Store.db ? "gesichert" : "nicht gesichert"; }
+function setSync() {
+  $("#sync").textContent = Store.db
+    ? "Liegt nur auf diesem iPhone. Ab und zu „Sichern“ tippen."
+    : "Speichern ist hier nicht möglich – privates Surfen?";
+}
+function toast(msg, ms = 2600) {
+  const t = $("#toast");
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(toastT);
+  toastT = setTimeout(() => { t.hidden = true; }, ms);
+}
+function hideHint() {
+  if (prefs.hintSeen) return;
+  $("#hint").hidden = true;
+  prefs.hintSeen = true; savePrefs();
+}
+
+function setTool(t) {
+  tool = t;
+  for (const [id, name] of [["#t-pen", "pen"], ["#t-eraser", "eraser"]]) {
+    $(id).classList.toggle("on", t === name);
+    $(id).setAttribute("aria-pressed", String(t === name));
+  }
+  updateSwatches();
+}
+function updateSwatches() {
+  for (const b of document.querySelectorAll(".sw")) {
+    const on = tool === "pen" && b.dataset.color === prefs.color;
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-pressed", String(on));
+  }
+}
+function updateWidth() {
+  for (const b of document.querySelectorAll("#widthpop button")) b.classList.toggle("on", +b.dataset.w === prefs.width);
+}
+function updateTitle() { $("#title").textContent = note.title; }
+function updateMenu() {
+  $("#rename").value = note.title;
+  for (const b of document.querySelectorAll("#paper-seg button")) b.classList.toggle("on", b.dataset.paper === note.paper);
+  for (const b of document.querySelectorAll("#theme-seg button")) b.classList.toggle("on", b.dataset.appearance === prefs.appearance);
+  $("#auto").checked = prefs.autoAdvance;
+  disarmClear();
+}
+
+function openPop(id) {
+  closePopovers();
+  $(id).hidden = false;
+  $("#scrim").hidden = false;
+}
+function closePopovers() {
+  if ($("#menu").hidden && $("#widthpop").hidden) return;
+  $("#menu").hidden = true;
+  $("#widthpop").hidden = true;
+  $("#scrim").hidden = true;
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+}
+
+let clearArmed = false;
+function disarmClear() {
+  clearArmed = false;
+  const b = $("#x-clear");
+  b.classList.remove("armed");
+  b.querySelector("span").textContent = "Seite leeren";
+}
+
+function openLibrary() {
+  closePopovers();
+  saveNow();
+  renderLibrary();
+  $("#library").hidden = false;
+}
+function closeLibrary() { $("#library").hidden = true; }
+
+function renderLibrary() {
+  const list = Store.list();
+  const ul = $("#lib-list");
+  ul.textContent = "";
+  $("#lib-count").textContent = list.length === 1 ? "1 Notiz" : list.length + " Notizen";
+  $("#lib-empty").hidden = list.length > 0;
+  for (const m of list) {
+    const li = document.createElement("li");
+    li.className = "row";
+
+    const open = document.createElement("button");
+    open.className = "row-open";
+    const th = document.createElement("span");
+    th.className = "thumb";
+    if (m.thumb) { const i = document.createElement("i"); i.style.setProperty("--m", 'url("' + m.thumb + '")'); th.append(i); }
+    const tx = document.createElement("span");
+    tx.className = "row-text";
+    const t1 = document.createElement("span");
+    t1.className = "row-title"; t1.textContent = m.title || "Notiz";
+    const t2 = document.createElement("span");
+    t2.className = "row-meta";
+    const when = new Date(m.modified || Date.now()).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+    t2.textContent = when + " · " + (PAPER_LABEL[m.paper] || "kariert") + " · " + (m.sheets || 1) + " S.";
+    if (note && m.id === note.id) { const em = document.createElement("em"); em.textContent = " · offen"; t2.append(em); }
+    tx.append(t1, t2);
+    open.append(th, tx);
+    open.addEventListener("click", () => openNote(m));
+
+    const del = document.createElement("button");
+    del.className = "tb row-del";
+    del.setAttribute("aria-label", "Notiz löschen");
+    del.innerHTML = '<svg class="ico"><use href="#i-trash"/></svg>';
+    del.addEventListener("click", () => {
+      const box = document.createElement("div");
+      box.className = "row-confirm";
+      const q = document.createElement("span"); q.textContent = "„" + (m.title || "Notiz") + "“ löschen?";
+      const no = document.createElement("button"); no.className = "pill"; no.textContent = "Behalten";
+      const yes = document.createElement("button"); yes.className = "pill danger"; yes.textContent = "Löschen";
+      no.addEventListener("click", () => box.remove());
+      yes.addEventListener("click", () => {
+        if (note && m.id === note.id) { clearTimeout(saveT); dirty = false; setNote(freshNote()); }
+        Store.remove(m.id);
+      });
+      box.append(q, no, yes);
+      li.append(box);
+      yes.focus();
+    });
+
+    li.append(open, del);
+    ul.append(li);
+  }
+}
+
+// ───────── Verdrahtung ─────────
+function wire() {
+  $("#t-pen").addEventListener("click", () => {
+    if (tool === "pen") { if ($("#widthpop").hidden) openPop("#widthpop"); else closePopovers(); }
+    else setTool("pen");
+  });
+  $("#t-eraser").addEventListener("click", () => setTool("eraser"));
+  for (const b of document.querySelectorAll(".sw")) b.addEventListener("click", () => {
+    prefs.color = b.dataset.color; savePrefs(); setTool("pen");
+  });
+  for (const b of document.querySelectorAll("#widthpop button")) b.addEventListener("click", () => {
+    prefs.width = +b.dataset.w; savePrefs(); updateWidth(); setTool("pen"); closePopovers();
+  });
+  $("#t-undo").addEventListener("click", undo);
+  $("#t-redo").addEventListener("click", redo);
+  $("#t-lupe").addEventListener("click", () => setLupeOn(!lupeOn));
+  for (const b of document.querySelectorAll("[data-step]")) b.addEventListener("click", () => stepLupe(b.dataset.step));
+  for (const b of document.querySelectorAll("[data-zoom]")) b.addEventListener("click", () => zoomLupe(+b.dataset.zoom));
+
+  $("#btn-menu").addEventListener("click", () => { if ($("#menu").hidden) { updateMenu(); openPop("#menu"); } else closePopovers(); });
+  $("#title").addEventListener("click", () => { updateMenu(); openPop("#menu"); $("#rename").focus(); $("#rename").select(); });
+  $("#scrim").addEventListener("click", closePopovers);
+  $("#rename").addEventListener("input", (e) => {
+    note.title = e.target.value.trim() || defaultTitle(new Date(note.created));
+    updateTitle();
+    if (note.strokes.length || note.persisted) markDirty();
+  });
+  $("#rename").addEventListener("keydown", (e) => { if (e.key === "Enter") closePopovers(); });
+  for (const b of document.querySelectorAll("#paper-seg button")) b.addEventListener("click", () => {
+    note.paper = b.dataset.paper; prefs.paper = note.paper; savePrefs();
+    invalidateBases(); updateMenu();
+    if (note.strokes.length || note.persisted) markDirty();
+  });
+  for (const b of document.querySelectorAll("#theme-seg button")) b.addEventListener("click", () => {
+    prefs.appearance = b.dataset.appearance; savePrefs(); applyAppearance(prefs.appearance); updateMenu();
+  });
+  $("#auto").addEventListener("change", (e) => { prefs.autoAdvance = e.target.checked; savePrefs(); cancelAdvance(); invalidateOverlays(); });
+  $("#x-pdf").addEventListener("click", exportPDF);
+  $("#x-png").addEventListener("click", exportPNG);
+  $("#x-clear").addEventListener("click", () => {
+    if (!note.strokes.length) { closePopovers(); return; }
+    if (!clearArmed) {
+      clearArmed = true;
+      $("#x-clear").classList.add("armed");
+      $("#x-clear").querySelector("span").textContent = "Wirklich alles löschen?";
+      return;
+    }
+    const all = note.strokes.slice();
+    removeStrokes(all);
+    pushUndo({ t: "remove", s: all });
+    closePopovers();
+    toast("Seite geleert – Rückgängig holt alles zurück.");
+  });
+
+  $("#share-go").addEventListener("click", sharePending);
+  $("#share-x").addEventListener("click", closeSharebar);
+  $("#lib-backup").addEventListener("click", async () => {
+    const data = await Store.exportAll();
+    if (!data.notes.length) { toast("Noch nichts zu sichern."); return; }
+    const day = new Date().toISOString().slice(0, 10);
+    offerFile(JSON.stringify(data), "Kladde-Sicherung-" + day + ".json", "application/json");
+  });
+  $("#lib-import").addEventListener("click", () => $("#import-file").click());
+  $("#import-file").addEventListener("change", async (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    try {
+      const n = await Store.importAll(JSON.parse(await file.text()));
+      toast(n === 1 ? "1 Notiz geladen." : n + " Notizen geladen.");
+    } catch (_) {
+      toast("Das ist keine Kladde-Sicherung.");
+    }
+  });
+  // Kein Gummiband-Scrollen der ganzen App, nur Listen dürfen scrollen
+  document.addEventListener("touchmove", (e) => {
+    if (!(e.target.closest && e.target.closest(".lib-list, .menu"))) e.preventDefault();
+  }, { passive: false });
+
+  $("#btn-library").addEventListener("click", openLibrary);
+  $("#lib-close").addEventListener("click", closeLibrary);
+  $("#lib-new").addEventListener("click", startNewNote);
+
+  // Kein Scrollen, Zoomen oder Lupen-Menü des Browsers auf den Zeichenflächen
+  for (const el of [$("#stage"), $("#pad")]) {
+    el.addEventListener("touchstart", (e) => e.preventDefault(), { passive: false });
+    el.addEventListener("touchmove", (e) => e.preventDefault(), { passive: false });
+    el.addEventListener("contextmenu", (e) => e.preventDefault());
+  }
+  document.addEventListener("gesturestart", (e) => e.preventDefault());
+
+  document.addEventListener("keydown", (e) => {
+    if (e.target && e.target.tagName === "INPUT") return;
+    const mod = e.metaKey || e.ctrlKey;
+    if (mod && e.key.toLowerCase() === "z") { e.preventDefault(); if (e.shiftKey) redo(); else undo(); }
+    else if (e.key === "Escape") { closePopovers(); closeLibrary(); closeSharebar(); }
+  });
+
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") saveNow(); });
+  window.addEventListener("pagehide", () => { saveNow(); });
+
+  const mq = window.matchMedia("(prefers-color-scheme: dark)");
+  if (mq.addEventListener) mq.addEventListener("change", refreshTheme);
+  new MutationObserver(refreshTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+}
+
+// ───────── Start: sofort eine leere Seite, bereit zum Schreiben ─────────
+if (prefs.appearance !== "system") applyAppearance(prefs.appearance);
+readPalette();
+note = freshNote();
+page = new Surface($("#stage"), "page");
+pad = new Surface($("#pad"), "pad");
+wire();
+setTool("pen");
+updateWidth();
+updateUndo();
+updateTitle();
+updateReadout();
+updateMenu();
+if (prefs.hintSeen) $("#hint").hidden = true;
+Store.onChange = () => { if (!$("#library").hidden) renderLibrary(); };
+Store.init().catch(() => { setSync(); });
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+})();
+</script>
+</body>
+</html>
