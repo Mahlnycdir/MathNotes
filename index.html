@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<title>Kladde</title>
+<title>MathNotes</title>
 <meta name="description" content="Handschriftliches Notizbuch für Mathe und Physik – mit dem Daumen.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Kladde">
+<meta name="apple-mobile-web-app-title" content="MathNotes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#F2F4F6" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#1B1E23" media="(prefers-color-scheme: dark)">
@@ -333,7 +333,7 @@ svg { display: block; }
   <section id="library" class="library" hidden aria-label="Alle Notizen">
     <div class="lib-head">
       <div>
-        <h1>Kladde</h1>
+        <h1>MathNotes</h1>
         <span id="lib-count" class="label">0 Notizen</span>
       </div>
       <div class="lib-tools">
@@ -398,9 +398,9 @@ const LS = {
 
 const prefs = Object.assign(
   { appearance: "system", paper: "grid", width: 2.6, color: "ink", autoAdvance: true, hintSeen: false },
-  LS.get("kladde:prefs") || {}
+  LS.get("MathNotes:prefs") || {}
 );
-const savePrefs = () => LS.set("kladde:prefs", prefs);
+const savePrefs = () => LS.set("MathNotes:prefs", prefs);
 
 // ───────── Zustand ─────────
 let note = null;             // aktuelle Notiz
@@ -584,7 +584,7 @@ const Store = {
   async init() {
     try {
       this.db = await new Promise((res, rej) => {
-        const r = indexedDB.open("kladde", 1);
+        const r = indexedDB.open("MathNotes", 1);
         r.onupgradeneeded = () => {
           const d = r.result;
           if (!d.objectStoreNames.contains("meta")) d.createObjectStore("meta", { keyPath: "id" });
@@ -639,11 +639,11 @@ const Store = {
   async exportAll() {
     const notes = [];
     for (const m of this.list()) notes.push({ meta: m, body: await this.loadBody(m.id) });
-    return { app: "kladde", version: 1, exported: Date.now(), notes };
+    return { app: "MathNotes", version: 1, exported: Date.now(), notes };
   },
 
   async importAll(data) {
-    if (!data || data.app !== "kladde" || !Array.isArray(data.notes)) throw new Error("format");
+    if (!data || data.app !== "MathNotes" || !Array.isArray(data.notes)) throw new Error("format");
     let n = 0;
     for (const item of data.notes) {
       const m = item && item.meta, b = item && item.body;
@@ -1503,7 +1503,7 @@ function wire() {
     const data = await Store.exportAll();
     if (!data.notes.length) { toast("Noch nichts zu sichern."); return; }
     const day = new Date().toISOString().slice(0, 10);
-    offerFile(JSON.stringify(data), "Kladde-Sicherung-" + day + ".json", "application/json");
+    offerFile(JSON.stringify(data), "MathNotes-Sicherung-" + day + ".json", "application/json");
   });
   $("#lib-import").addEventListener("click", () => $("#import-file").click());
   $("#import-file").addEventListener("change", async (e) => {
@@ -1514,7 +1514,7 @@ function wire() {
       const n = await Store.importAll(JSON.parse(await file.text()));
       toast(n === 1 ? "1 Notiz geladen." : n + " Notizen geladen.");
     } catch (_) {
-      toast("Das ist keine Kladde-Sicherung.");
+      toast("Das ist keine MathNotes-Sicherung.");
     }
   });
   // Kein Gummiband-Scrollen der ganzen App, nur Listen dürfen scrollen

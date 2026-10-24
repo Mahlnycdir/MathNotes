@@ -1,6 +1,6 @@
 {
-  "name": "Kladde",
-  "short_name": "Kladde",
+  "name": "MathNotes",
+  "short_name": "MathNotes",
   "description": "Handschriftliches Notizbuch für Mathe und Physik – mit dem Daumen.",
   "lang": "de",
   "start_url": "./",

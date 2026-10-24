@@ -1,6 +1,6 @@
-// Kladde – Service Worker: macht die App offline-fähig.
+// MathNotes – Service Worker: macht die App offline-fähig.
 // Bei einer neuen Version VERSION hochzählen, dann holt sich jedes iPhone die neuen Dateien.
-const VERSION = "kladde-v1";
+const VERSION = "MathNotes-v1";
 const FILES = [
   "./",
   "index.html",
